@@ -9,6 +9,19 @@ import {
 const VW = 900, VH = 600, M = 25; // viewBox + Rand
 const FW = VW - 2 * M, FH = VH - 2 * M;
 
+// UI-Palette (helles Theme, Akzent = Bad-Ragaz-Blau)
+const UI = {
+  accent: "#0a3d91",       // Vereinsblau — hier zentral anpassbar
+  accentSoft: "#0a3d9114", // Akzent-Flaeche fuer aktive Buttons
+  bg: "#eef1f5",           // Seitenhintergrund
+  panel: "#ffffff",        // Bedienflaechen
+  border: "#d3d9e2",
+  text: "#1b2330",
+  muted: "#6b7683",
+  danger: "#c62f2f",
+  handle: "#ffd447",       // Anfasser/Auswahl AUF dem gruenen Feld: Signalgelb
+};
+
 const PALETTE = ["#2f6fde", "#d64545", "#ffd447", "#2e9e4f", "#f5f2e8", "#222222"];
 
 const EL_DEFS = [
@@ -41,6 +54,43 @@ const META_FIELDS = [
   ["material", "Material"],
 ];
 const EMPTY_META = Object.fromEntries(META_FIELDS.map(f => [f[0], ""]));
+
+// ── Markdown (Obsidian) ───────────────────────────────────────
+const yaml = (s) => JSON.stringify(s ?? "");        // sicheres Quoting inkl. Umlaute
+const MD_FRONT = ["dauer", "ziel", "mannschaften", "material"]; // einzeilig → Frontmatter
+const MD_BODY = ["beschreibung", "variation"];                  // mehrzeilig → Abschnitte
+
+// Frontmatter + Bild-Embed + Abschnitte; imgName = Dateiname des PNG im Vault
+function uebungMarkdown(meta, imgName, headingLevel = 1) {
+  const h = "#".repeat(headingLevel);
+  const front = [
+    "---",
+    `titel: ${yaml(meta.titel || "Übung")}`,
+    ...MD_FRONT.filter(k => meta[k].trim()).map(k => `${k}: ${yaml(meta[k].trim())}`),
+    "---",
+    "",
+  ];
+  // Im Trainings-Dokument gibt es kein Frontmatter pro Übung → als Liste ausgeben
+  const kopfdaten = headingLevel === 1 ? [] : [
+    ...MD_FRONT.filter(k => meta[k].trim())
+      .map(k => `- **${k[0].toUpperCase() + k.slice(1)}:** ${meta[k].trim()}`),
+    "",
+  ];
+  const body = [
+    `${h} ${meta.titel || "Übung"}`,
+    "",
+    ...kopfdaten,
+    `![[${imgName}]]`,
+    "",
+    ...MD_BODY.filter(k => meta[k].trim()).flatMap(k => [
+      `${h}# ${k[0].toUpperCase() + k.slice(1)}`,
+      "",
+      meta[k].trim(),
+      "",
+    ]),
+  ];
+  return (headingLevel === 1 ? front : []).concat(body).join("\n");
+}
 
 // Eine Übung als Word-Tabelle (wiederverwendbar für späteren Trainings-Export)
 function uebungTable(meta, pngBytes) {
@@ -203,7 +253,7 @@ function PitchLines({ field }) {
 }
 
 // ── Element-Rendering ─────────────────────────────────────────
-function Element({ el, selected, onDown }) {
+function Element({ el, selected, onDown, onEdit }) {
   const common = { transform: `translate(${el.x},${el.y})`, onPointerDown: onDown, style: { cursor: "grab" } };
   const sel = selected && <circle r={20} fill="none" stroke="#ffd447" strokeWidth={1.5} strokeDasharray="4 4" />;
   switch (el.type) {
@@ -251,6 +301,26 @@ function Element({ el, selected, onDown }) {
           {[-12, 0, 12].map(x => <line key={x} x1={x} y1={-8} x2={x} y2={8} stroke="#ffd447" strokeWidth={2} />)}
         </g>
       );
+    case "text": {
+      const lines = el.label.split("\n");
+      const lw = Math.max(...lines.map(l => l.length), 1) * 10.4 + 12;
+      const lh = lines.length * 21 + 10;
+      return (
+        <g {...common} onDoubleClick={onEdit}>
+          {selected && (
+            <rect x={-6} y={-15} width={lw} height={lh}
+              fill="none" stroke="#ffd447" strokeWidth={1.5} strokeDasharray="4 4" rx={4} />
+          )}
+          <text y={5} textAnchor="start" fontSize={18} fontWeight={600}
+            fill={el.color || "#f5f2e8"}
+            style={{ userSelect: "none", fontFamily: "system-ui, sans-serif" }}>
+            {lines.map((line, i) => (
+              <tspan key={i} x={0} dy={i === 0 ? 0 : 21}>{line}</tspan>
+            ))}
+          </text>
+        </g>
+      );
+    }
     default: return null;
   }
 }
@@ -313,7 +383,7 @@ function ColorPicker({ color, onPick, title }) {
   const [open, setOpen] = useState(false);
   const dot = (bg, active) => ({
     width: 24, height: 24, borderRadius: "50%", background: bg, padding: 0,
-    border: active ? "2px solid #ffd447" : "1px solid #3a423d", cursor: "pointer",
+    border: active ? `2px solid ${UI.accent}` : `1px solid ${UI.border}`, cursor: "pointer",
   });
   const pick = (c) => { onPick(c); setOpen(false); };
   return (
@@ -326,9 +396,9 @@ function ColorPicker({ color, onPick, title }) {
           <div style={{ position: "fixed", inset: 0, zIndex: 5 }} onClick={() => setOpen(false)} />
           <div style={{
             position: "absolute", top: "100%", right: 0, marginTop: 4, zIndex: 6,
-            background: "#242b27", border: "1px solid #3a423d", borderRadius: 8,
+            background: UI.panel, border: `1px solid ${UI.border}`, borderRadius: 8,
             padding: 8, display: "grid", gridTemplateColumns: "repeat(3, 24px)", gap: 8,
-            boxShadow: "0 4px 16px #0008",
+            boxShadow: "0 4px 16px #00000026",
           }}>
             {PALETTE.map(c => (
               <button key={c} title="Farbe" onClick={() => pick(c)} style={dot(c, color === c)} />
@@ -364,6 +434,9 @@ export default function Uebungsplaner() {
   const [selectedId, setSelectedId] = useState(null);
   const [draft, setDraft] = useState(null);
   const [hoverHandle, setHoverHandle] = useState(null); // {id, xk, yk} nahe dem Cursor
+  const [tab, setTab] = useState("uebung"); // rechtes Panel: 'uebung' | 'training'
+  const [editingId, setEditingId] = useState(null); // Textlabel im Inline-Edit
+  const editRef = useRef(null);
   const [meta, setMeta] = useState(EMPTY_META);
   const [training, setTraining] = useState([]); // Array<{meta, field, items}>
   const [trainingTitel, setTrainingTitel] = useState("");
@@ -386,6 +459,14 @@ export default function Uebungsplaner() {
     const p = getPoint(e);
     if (mode.startsWith("el:")) {
       const type = mode.slice(3);
+      if (type === "text") { // leeres Label platzieren, Inline-Editor öffnet sofort
+        // Standardaktion des Mousedown würde das neue Eingabefeld sofort wieder blurren
+        e.preventDefault();
+        const id = uid();
+        setItems(it => [...it, { kind: "el", id, type, x: p.x, y: p.y, label: "", color: lineColor }]);
+        setEditingId(id);
+        return;
+      }
       const label = type === "gk" ? "T" : "";
       const item = { kind: "el", id: uid(), type, x: p.x, y: p.y, label };
       if (type === "player") item.color = playerColor;
@@ -471,6 +552,23 @@ export default function Uebungsplaner() {
     }
   };
 
+  // Fokus erst NACH der Standardaktion des auslösenden Klicks setzen (sonst blurt
+  // der Browser das Feld sofort wieder weg)
+  useEffect(() => {
+    if (editingId == null) return;
+    const t = setTimeout(() => {
+      editRef.current?.focus();
+      editRef.current?.select();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [editingId]);
+
+  // Inline-Editor schliessen; leer gebliebene Textlabels wieder entfernen
+  const closeTextEditor = () => {
+    setItems(it => it.filter(i => !(i.id === editingId && i.type === "text" && !i.label.trim())));
+    setEditingId(null);
+  };
+
   const deleteSelected = () => {
     if (selectedId != null) { setItems(it => it.filter(i => i.id !== selectedId)); setSelectedId(null); }
   };
@@ -504,11 +602,6 @@ export default function Uebungsplaner() {
     setMsg(`Übung gespeichert: ${fileBase()}.json`);
   };
 
-  const exportSVG = () => {
-    const xml = new XMLSerializer().serializeToString(svgRef.current);
-    download(new Blob([xml], { type: "image/svg+xml" }), fileBase() + ".svg");
-  };
-
   const renderPNGBlob = () => svgToPng(new XMLSerializer().serializeToString(svgRef.current));
 
   const exportPNG = async () => {
@@ -522,6 +615,7 @@ export default function Uebungsplaner() {
   const addToTraining = () => {
     setTraining(t => [...t, snapshot()]);
     setActiveIdx(training.length);
+    setTab("training"); // Ergebnis sofort sichtbar machen
     setMsg(`Übung ${training.length + 1} zum Training hinzugefügt`);
   };
 
@@ -603,6 +697,43 @@ export default function Uebungsplaner() {
     }
   };
 
+  const exportMD = async () => {
+    try {
+      const base = fileBase();
+      download(await renderPNGBlob(), base + ".png");
+      const md = uebungMarkdown(meta, base + ".png");
+      download(new Blob([md], { type: "text/markdown" }), base + ".md");
+      setMsg(`Markdown erstellt: ${base}.md + ${base}.png`);
+    } catch (err) {
+      setMsg("Markdown-Export fehlgeschlagen: " + err.message);
+    }
+  };
+
+  const exportTrainingMD = async () => {
+    try {
+      const base = trainingFileBase();
+      const teile = [
+        "---",
+        `titel: ${yaml(trainingTitel || "Training")}`,
+        `uebungen: ${training.length}`,
+        "---",
+        "",
+        `# ${trainingTitel || "Training"}`,
+        "",
+      ];
+      for (let i = 0; i < training.length; i++) {
+        const u = training[i];
+        const img = `${base}-${i + 1}.png`;
+        download(await svgToPng(uebungSvgString(u.field, u.items)), img);
+        teile.push(uebungMarkdown(u.meta, img, 2));
+      }
+      download(new Blob([teile.join("\n")], { type: "text/markdown" }), base + ".md");
+      setMsg(`Markdown erstellt: ${base}.md + ${training.length} PNG`);
+    } catch (err) {
+      setMsg("Markdown-Export fehlgeschlagen: " + err.message);
+    }
+  };
+
   const exportDOCX = async () => {
     try {
       const png = new Uint8Array(await (await renderPNGBlob()).arrayBuffer());
@@ -650,45 +781,55 @@ export default function Uebungsplaner() {
   const btn = (active) => ({
     display: "block", width: "100%", textAlign: "left", padding: "7px 10px",
     marginBottom: 4, borderRadius: 6, cursor: "pointer",
-    border: active ? "1px solid #ffd447" : "1px solid #3a423d",
-    background: active ? "#ffd44718" : "#242b27",
-    color: active ? "#ffd447" : "#d8d5ca",
+    border: active ? `1px solid ${UI.accent}` : `1px solid ${UI.border}`,
+    background: active ? UI.accentSoft : UI.panel,
+    color: active ? UI.accent : UI.text,
     fontFamily: "ui-monospace, SFMono-Regular, monospace", fontSize: 12.5,
   });
   const groupLabel = {
     fontSize: 10.5, letterSpacing: 1.5, textTransform: "uppercase",
-    color: "#8a948c", margin: "14px 0 6px", fontFamily: "ui-monospace, monospace",
+    color: UI.muted, margin: "14px 0 6px", fontFamily: "ui-monospace, monospace",
   };
   const fieldLabel = {
-    display: "block", fontSize: 10.5, color: "#8a948c", marginBottom: 2,
+    display: "block", fontSize: 10.5, color: UI.muted, marginBottom: 2,
     fontFamily: "ui-monospace, monospace",
   };
   const inp = {
     width: "100%", boxSizing: "border-box", padding: "5px 8px", marginBottom: 8,
-    borderRadius: 6, border: "1px solid #3a423d", background: "#242b27",
-    color: "#d8d5ca", fontFamily: "ui-monospace, monospace", fontSize: 12,
+    borderRadius: 6, border: `1px solid ${UI.border}`, background: UI.panel,
+    color: UI.text, fontFamily: "ui-monospace, monospace", fontSize: 12,
     outline: "none", resize: "vertical",
   };
+  // Kompakte Aktion (Leiste über dem Feld, Export-Zeile)
+  const smallBtn = {
+    padding: "5px 10px", borderRadius: 6, cursor: "pointer",
+    border: `1px solid ${UI.border}`, background: UI.panel, color: UI.text,
+    fontFamily: "ui-monospace, monospace", fontSize: 11.5,
+  };
+  // Reiter im rechten Panel
+  const tabBtn = (active) => ({
+    flex: 1, padding: "7px 0", cursor: "pointer", border: "none",
+    borderBottom: active ? `2px solid ${UI.accent}` : `2px solid ${UI.border}`,
+    background: "none", color: active ? UI.accent : UI.muted,
+    fontFamily: "ui-monospace, monospace", fontSize: 12.5,
+    fontWeight: active ? 700 : 400,
+  });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#1c2320", color: "#d8d5ca", fontFamily: "system-ui, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: UI.bg, color: UI.text, fontFamily: "system-ui, sans-serif" }}>
       {/* Kopfzeile */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderBottom: "1px solid #313a34" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: UI.panel, borderBottom: `1px solid ${UI.border}` }}>
         <div style={{ fontFamily: "ui-monospace, monospace", fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>
-          ÜBUNGSPLANER<span style={{ color: "#ffd447" }}>_</span>
+          ÜBUNGSPLANER<span style={{ color: UI.accent }}>_</span>
         </div>
         <div style={{ flex: 1 }} />
         <input ref={fileRef} type="file" accept=".svg,.json" style={{ display: "none" }} onChange={onLoadFile} />
-        <button style={{ ...btn(false), width: "auto", marginBottom: 0 }} onClick={() => fileRef.current.click()}>Übung laden</button>
-        <button style={{ ...btn(false), width: "auto", marginBottom: 0 }} onClick={saveUebung}>Übung speichern</button>
-        <button style={{ ...btn(false), width: "auto", marginBottom: 0 }} onClick={exportSVG}>SVG exportieren</button>
-        <button style={{ ...btn(false), width: "auto", marginBottom: 0 }} onClick={exportPNG}>PNG exportieren</button>
-        <button style={{ ...btn(false), width: "auto", marginBottom: 0 }} onClick={exportDOCX}>Word exportieren</button>
+        <input ref={trainFileRef} type="file" accept=".json" style={{ display: "none" }} onChange={onLoadTrainingFile} />
       </div>
 
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* Werkzeugleiste */}
-        <div style={{ width: 168, padding: "8px 12px", overflowY: "auto", borderRight: "1px solid #313a34", flexShrink: 0 }}>
+        <div style={{ width: 168, padding: "8px 12px", overflowY: "auto", background: UI.panel, borderRight: `1px solid ${UI.border}`, flexShrink: 0 }}>
           <div style={groupLabel}>Modus</div>
           <button style={btn(mode === "select")} onClick={() => setMode("select")}>Auswählen / Verschieben</button>
 
@@ -701,6 +842,8 @@ export default function Uebungsplaner() {
           {EL_DEFS.map(d => (
             <button key={d.key} style={btn(mode === "el:" + d.key)} onClick={() => setMode("el:" + d.key)}>{d.label}</button>
           ))}
+
+          <button style={btn(mode === "el:text")} onClick={() => setMode("el:text")}>Text</button>
 
           <div style={{ ...groupLabel, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span>Wege & Formen</span>
@@ -716,18 +859,21 @@ export default function Uebungsplaner() {
             <button key={k} style={btn(field === k)} onClick={() => setField(k)}>{l}</button>
           ))}
 
-          <div style={groupLabel}>Aktionen</div>
-          <button style={btn(false)} onClick={deleteSelected} disabled={selectedId == null}>Auswahl löschen</button>
-          <button style={btn(false)} onClick={undo}>Rückgängig</button>
-          <button style={btn(false)} onClick={clearAll}>Alles löschen</button>
         </div>
 
         {/* Zeichenfläche */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 14, minWidth: 0 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, minWidth: 0 }}>
+          <div style={{ display: "flex", gap: 6, alignSelf: "stretch" }}>
+            <button style={smallBtn} onClick={undo} disabled={!items.length} title="Letztes Objekt entfernen">↩ Rückgängig</button>
+            <button style={smallBtn} onClick={deleteSelected} disabled={selectedId == null} title="Ausgewähltes Objekt löschen">✕ Auswahl löschen</button>
+            <div style={{ flex: 1 }} />
+            <button style={smallBtn} onClick={clearAll} disabled={!items.length} title="Zeichenfläche leeren">Alles löschen</button>
+          </div>
+          <div style={{ flex: 1, minHeight: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg
             ref={svgRef}
             viewBox={`0 0 ${VW} ${VH}`}
-            style={{ width: "100%", maxHeight: "100%", borderRadius: 8, touchAction: "none", cursor: mode === "select" ? "default" : "crosshair", boxShadow: "0 4px 24px #0006" }}
+            style={{ width: "100%", maxHeight: "100%", borderRadius: 8, touchAction: "none", cursor: mode === "select" ? "default" : "crosshair", boxShadow: "0 2px 16px #00000026" }}
             xmlns="http://www.w3.org/2000/svg"
             onPointerDown={onCanvasDown}
             onPointerMove={onMove}
@@ -743,7 +889,8 @@ export default function Uebungsplaner() {
             ))}
             {draft && <Line ln={draft} />}
             {items.filter(i => i.kind === "el").map(el => (
-              <Element key={el.id} el={el} selected={el.id === selectedId} onDown={onElementDown(el)} />
+              <Element key={el.id} el={el} selected={el.id === selectedId} onDown={onElementDown(el)}
+                onEdit={() => setEditingId(el.id)} />
             ))}
             {/* Endpunkt-/Eck-Handles der selektierten Linie (Freihand hat keine) */}
             {(() => {
@@ -751,7 +898,7 @@ export default function Uebungsplaner() {
               if (!sel) return null;
               return handleKeys(sel).map(([xk, yk]) => (
                 <circle key={xk + yk} cx={sel[xk]} cy={sel[yk]} r={6}
-                  fill="#ffd447" stroke="#1c2320" strokeWidth={1.5}
+                  fill={UI.handle} stroke="#1b2330" strokeWidth={1.5}
                   style={{ cursor: "grab" }}
                   onPointerDown={(e) => {
                     e.stopPropagation();
@@ -772,64 +919,135 @@ export default function Uebungsplaner() {
               };
               return (
                 <g>
-                  <circle cx={hx} cy={hy} r={7} fill="#ffd447" stroke="#1c2320" strokeWidth={1.5} />
+                  <circle cx={hx} cy={hy} r={7} fill={UI.handle} stroke="#1b2330" strokeWidth={1.5} />
                   <circle cx={hx} cy={hy} r={14} fill="transparent" style={{ cursor: "grab" }} onPointerDown={grab} />
                 </g>
               );
             })()}
+            {/* Inline-Editor für Textlabels — Textarea direkt am Label,
+                Enter = Zeilenumbruch, Escape/Blur schliesst */}
+            {(() => {
+              const ed = items.find(i => i.id === editingId && i.kind === "el" && i.type === "text");
+              if (!ed) return null;
+              const lines = ed.label.split("\n");
+              const w = Math.max(180, Math.max(...lines.map(l => l.length)) * 10 + 60);
+              const h = lines.length * 22 + 26;
+              return (
+                <foreignObject x={ed.x - 8} y={ed.y - 17} width={w} height={h}>
+                  <textarea
+                    ref={editRef}
+                    value={ed.label}
+                    onChange={e => setItems(it => it.map(i => i.id === ed.id ? { ...i, label: e.target.value } : i))}
+                    onBlur={closeTextEditor}
+                    onKeyDown={e => {
+                      e.stopPropagation(); // Entf/Backspace beim Tippen löscht kein Element
+                      if (e.key === "Escape") closeTextEditor();
+                    }}
+                    onPointerDown={e => e.stopPropagation()}
+                    style={{
+                      width: "100%", height: "100%", boxSizing: "border-box", textAlign: "left",
+                      fontSize: 15, fontWeight: 600, fontFamily: "system-ui, sans-serif",
+                      border: "1.5px solid #ffd447", borderRadius: 6, resize: "none",
+                      overflow: "hidden", lineHeight: "22px", padding: "1px 6px",
+                      background: "#ffffffee", color: "#1b2330", outline: "none",
+                    }} />
+                </foreignObject>
+              );
+            })()}
           </svg>
+          </div>
         </div>
 
-        {/* Übungsdaten */}
-        <div style={{ width: 210, padding: "8px 12px", overflowY: "auto", borderLeft: "1px solid #313a34", flexShrink: 0 }}>
-          <div style={groupLabel}>Übungsdaten</div>
-          {META_FIELDS.map(([key, label, multi]) => (
-            <div key={key}>
-              <label htmlFor={"meta-" + key} style={fieldLabel}>{label}</label>
-              {multi ? (
-                <textarea id={"meta-" + key} rows={4} style={inp} value={meta[key]}
-                  onChange={e => setMeta(m => ({ ...m, [key]: e.target.value }))} />
-              ) : (
-                <input id={"meta-" + key} type="text" style={inp} value={meta[key]}
-                  onChange={e => setMeta(m => ({ ...m, [key]: e.target.value }))} />
-              )}
-            </div>
-          ))}
+        {/* Rechtes Panel: Übung | Training */}
+        <div style={{ width: 218, display: "flex", flexDirection: "column", background: UI.panel, borderLeft: `1px solid ${UI.border}`, flexShrink: 0 }}>
+          <div style={{ display: "flex", flexShrink: 0 }}>
+            <button style={tabBtn(tab === "uebung")} onClick={() => setTab("uebung")}>Übung</button>
+            <button style={tabBtn(tab === "training")} onClick={() => setTab("training")}>
+              Training{training.length ? ` (${training.length})` : ""}
+            </button>
+          </div>
 
-          <div style={groupLabel}>Training</div>
-          <label htmlFor="training-titel" style={fieldLabel}>Trainings-Titel</label>
-          <input id="training-titel" type="text" style={inp} value={trainingTitel}
-            onChange={e => setTrainingTitel(e.target.value)} />
-          <button style={btn(false)} onClick={addToTraining}>+ Übung hinzufügen</button>
-          {activeIdx != null && activeIdx < training.length && (
-            <button style={btn(false)} onClick={updateActive}>Übung {activeIdx + 1} aktualisieren</button>
-          )}
-          {training.map((u, i) => (
-            <div key={i} style={{ display: "flex", gap: 4 }}>
-              <button
-                style={{ ...btn(i === activeIdx), flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                onClick={() => loadEntry(i)} title={u.meta.titel || "Übung"}>
-                {i + 1} · {u.meta.titel || "Übung"}
-              </button>
-              <button style={{ ...btn(false), width: 26, padding: "7px 0", textAlign: "center", flexShrink: 0 }}
-                onClick={() => moveUp(i)} disabled={i === 0}>↑</button>
-              <button style={{ ...btn(false), width: 26, padding: "7px 0", textAlign: "center", flexShrink: 0 }}
-                onClick={() => removeEntry(i)} title="Aus Training entfernen">✕</button>
-            </div>
-          ))}
-          {training.length > 0 && (
-            <>
-              <button style={btn(false)} onClick={saveTraining}>Training speichern</button>
-              <button style={btn(false)} onClick={exportTrainingDOCX}>Training → Word</button>
-            </>
-          )}
-          <button style={btn(false)} onClick={() => trainFileRef.current.click()}>Training laden</button>
-          <input ref={trainFileRef} type="file" accept=".json" style={{ display: "none" }} onChange={onLoadTrainingFile} />
+          <div style={{ flex: 1, overflowY: "auto", padding: "4px 12px 12px" }}>
+            {tab === "uebung" ? (
+              <>
+                <div style={groupLabel}>Übungsdaten</div>
+                {META_FIELDS.map(([key, label, multi]) => (
+                  <div key={key}>
+                    <label htmlFor={"meta-" + key} style={fieldLabel}>{label}</label>
+                    {multi ? (
+                      <textarea id={"meta-" + key} rows={4} style={inp} value={meta[key]}
+                        onChange={e => setMeta(m => ({ ...m, [key]: e.target.value }))} />
+                    ) : (
+                      <input id={"meta-" + key} type="text" style={inp} value={meta[key]}
+                        onChange={e => setMeta(m => ({ ...m, [key]: e.target.value }))} />
+                    )}
+                  </div>
+                ))}
+
+                <div style={groupLabel}>Datei</div>
+                <button style={btn(false)} onClick={saveUebung}>Übung speichern</button>
+                <button style={btn(false)} onClick={() => fileRef.current.click()}>Übung laden</button>
+                <button style={btn(false)} onClick={addToTraining}>+ Zum Training hinzufügen</button>
+
+                <div style={groupLabel}>Export</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button style={{ ...smallBtn, flex: 1 }} onClick={exportPNG}>PNG</button>
+                  <button style={{ ...smallBtn, flex: 1 }} onClick={exportDOCX}>Word</button>
+                  <button style={{ ...smallBtn, flex: 1 }} onClick={exportMD} title="Notiz + Bild für Obsidian">MD</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={groupLabel}>Training</div>
+                <label htmlFor="training-titel" style={fieldLabel}>Trainings-Titel</label>
+                <input id="training-titel" type="text" style={inp} value={trainingTitel}
+                  onChange={e => setTrainingTitel(e.target.value)} />
+
+                <div style={groupLabel}>Übungen</div>
+                {training.length === 0 && (
+                  <div style={{ fontSize: 11.5, color: UI.muted, marginBottom: 8, lineHeight: 1.5 }}>
+                    Noch keine Übung. Im Reiter „Übung" auf „+ Zum Training hinzufügen".
+                  </div>
+                )}
+                {training.map((u, i) => (
+                  <div key={i} style={{ display: "flex", gap: 4 }}>
+                    <button
+                      style={{ ...btn(i === activeIdx), flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      onClick={() => loadEntry(i)} title={u.meta.titel || "Übung"}>
+                      {i + 1} · {u.meta.titel || "Übung"}
+                    </button>
+                    <button style={{ ...btn(false), width: 26, padding: "7px 0", textAlign: "center", flexShrink: 0 }}
+                      onClick={() => moveUp(i)} disabled={i === 0} title="Nach oben">↑</button>
+                    <button style={{ ...btn(false), width: 26, padding: "7px 0", textAlign: "center", flexShrink: 0 }}
+                      onClick={() => removeEntry(i)} title="Aus Training entfernen">✕</button>
+                  </div>
+                ))}
+                {activeIdx != null && activeIdx < training.length && (
+                  <button style={btn(false)} onClick={updateActive}>
+                    Übung {activeIdx + 1} aktualisieren
+                  </button>
+                )}
+
+                <div style={groupLabel}>Datei</div>
+                <button style={btn(false)} onClick={saveTraining} disabled={!training.length}>Training speichern</button>
+                <button style={btn(false)} onClick={() => trainFileRef.current.click()}>Training laden</button>
+
+                <div style={groupLabel}>Export</div>
+                <button style={{ ...smallBtn, width: "100%", marginBottom: 6 }} onClick={exportTrainingDOCX} disabled={!training.length}>
+                  Ganzes Training → Word
+                </button>
+                <button style={{ ...smallBtn, width: "100%" }} onClick={exportTrainingMD} disabled={!training.length}
+                  title="Eine Notiz mit allen Übungen + je ein PNG (Obsidian)">
+                  Ganzes Training → Markdown
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Fusszeile */}
-      <div style={{ padding: "6px 16px", fontSize: 11.5, color: msg.startsWith("Laden fehl") ? "#ff8c7a" : "#8a948c", borderTop: "1px solid #313a34", fontFamily: "ui-monospace, monospace" }}>
+      <div style={{ padding: "6px 16px", fontSize: 11.5, color: msg.startsWith("Laden fehl") ? UI.danger : UI.muted, background: UI.panel, borderTop: `1px solid ${UI.border}`, fontFamily: "ui-monospace, monospace" }}>
         {msg || "Element wählen → aufs Feld tippen · Weg wählen → ziehen · Auswählen-Modus: Elemente & Wege verschieben, Entf löscht"}
       </div>
     </div>

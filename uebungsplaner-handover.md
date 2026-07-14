@@ -51,7 +51,7 @@ dragRef: useRef           // {id, dx, dy} beim Verschieben
 ### Item-Typen
 ```js
 // Element
-{ kind:'el', id, type:'player'|'gk'|'ball'|'cone'|'pole'|'goal'|'ladder',
+{ kind:'el', id, type:'player'|'gk'|'ball'|'cone'|'pole'|'goal'|'ladder'|'text',
   x, y, label, color? }   // label: '' bei player (keine Nummern), 'T' bei gk
                           // color nur bei player — runder Farbpunkt neben dem
                           // Spieler-Button öffnet ein Popup mit 6 runden Swatches
@@ -60,6 +60,16 @@ dragRef: useRef           // {id, dx, dy} beim Verschieben
                           // Fixed-Overlay schliesst das Popup bei Klick daneben.
                           // Legacy-Typen 'p1'/'p2' rendern weiterhin (Fallback COL[type]),
                           // alte Nummern-Labels bleiben sichtbar
+                          // type 'text': label = Beschriftung (mehrzeilig, \n),
+                          // color = Linienfarbe. Workflow: Text-Modus → Klick aufs
+                          // Feld platziert LEERES Label + öffnet Inline-Editor
+                          // (foreignObject + Textarea an der Textposition;
+                          //  Enter = Zeilenumbruch, Escape/Blur schliesst,
+                          //  closeTextEditor() entfernt leer gebliebene Labels,
+                          //  stopPropagation hält Entf/Backspace vom Element fern);
+                          // Doppelklick auf bestehendes Label editiert es.
+                          // Rendering: tspan je Zeile (dy 21), system-ui 18px/600,
+                          // KEIN Kontur-Stroke — Farbe muss zum Feld passen
 
 // Linie (zwei Punkte)
 { kind:'line', id, lineType:'run'|'pass'|'dribble'|'cross'|'shot'|'plain'|'rect',
@@ -112,10 +122,17 @@ ziel, beschreibung, variation` (alles Strings; `beschreibung`/`variation` mehrze
 Beim Laden wird mit `EMPTY_META` gemergt — alte Dateien ohne `meta` laden sauber.
 Dateiname beim Export = Slug aus dem Titel (Umlaute → ae/oe/ue), Fallback `uebung`.
 
-- **SVG-Export:** `XMLSerializer` auf das Live-SVG → Download `.svg`
 - **Laden von SVG:** `DOMParser` → `getElementById('uebung-data')` → `JSON.parse(textContent)`
+  (nur noch Legacy-Ladepfad — SVG-Export wurde entfernt, das `<metadata>`-Element
+  bleibt im Live-SVG, schadet nicht)
 - Nach dem Laden: `nextId = max(ids) + 1` (Modul-Level-Counter!)
 - **PNG-Export** (2×-Auflösung via Canvas) enthält KEINE Metadaten — nur SVG ist die Projektdatei
+- **Markdown-Export** (`exportMD` / `exportTrainingMD`, `uebungMarkdown()`): Notiz für
+  Obsidian + PNG(s) als getrennte Downloads. Einzelübung: YAML-Frontmatter
+  (titel, dauer, ziel, mannschaften, material → Dataview-fähig), Bild via `![[name.png]]`,
+  beschreibung/variation als Abschnitte. Training: eine Notiz, Frontmatter nur auf
+  Trainings-Ebene, pro Übung `##`-Abschnitt mit Kopfdaten als Liste (dort gibt es kein
+  eigenes Frontmatter) + eigenes PNG. Beide Dateien gehören in denselben Vault-Ordner
 - **Word-Export** (`exportDOCX`): echtes `.docx` via `docx`-Library — eine Tabelle pro Übung:
   Titelzeile, gross das Bild (PNG 2×, via `renderPNGBlob()`), darunter nur die
   ausgefüllten Metadaten-Felder. `uebungTable(meta, pngBytes)` ist bewusst eine
@@ -157,8 +174,22 @@ Dateiname beim Export = Slug aus dem Titel (Umlaute → ae/oe/ue), Fallback `ueb
   `uebungSvgString(field, items)` via `renderToStaticMarkup` (react-dom/server) →
   `svgToPng()` — kein Umweg über den Editor-State
 
+### Layout (nach UX-Überarbeitung)
+- **Kopfzeile:** nur Titel — keine Buttons mehr
+- **Links:** reine Werkzeugpalette (Modus, Elemente, Wege & Formen, Feld)
+- **Über der Zeichenfläche:** Aktionsleiste (Rückgängig, Auswahl löschen, Alles
+  löschen) — Eingriffe ins Gezeichnete, nicht Werkzeuge; `disabled` wenn wirkungslos
+- **Rechts:** zwei Reiter (`tab`-State) — jedes Objekt hat genau EINEN Ort:
+  - `uebung`: Übungsdaten-Felder · Datei (speichern/laden/zum Training) · Export (PNG/Word)
+  - `training`: Trainings-Titel · Übungsliste · Datei (speichern/laden) · Export (Word)
+  - `addToTraining()` wechselt automatisch auf den Trainings-Reiter, Reiter zeigt Anzahl
+
 ## UI-Konventionen
-- Dark-Slate-Chrome (#1c2320), Signalgelb-Akzent (#ffd447), ui-monospace für Labels
+- Helles Theme, zentrale Palette `UI` (oben in der Datei): Akzent = Bad-Ragaz-Blau
+  `#0a3d91` (dort einmal ändern → gesamte Oberfläche folgt), Flächen weiss,
+  Seite `#eef1f5`, Text `#1b2330`. `UI.handle` bleibt Signalgelb — Anfasser und
+  Auswahl liegen auf dem grünen Rasen, blau hätte dort zu wenig Kontrast
+- ui-monospace für Labels
 - Deutsche Beschriftung (Schweizer Nutzer: kein ß — "Fussball", "weiss")
 - Statusmeldungen (Laden erfolgreich/fehlgeschlagen) in der Fusszeile, kein alert()
 - Inline-Styles (bewusst — kein Tailwind, kein CSS-File; bei Wachstum ggf. umziehen)
