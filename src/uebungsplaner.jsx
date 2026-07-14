@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   Document, Packer, Paragraph, TextRun, ImageRun, PageBreak,
-  Table, TableRow, TableCell, WidthType,
+  Table, TableRow, TableCell, WidthType, TableLayoutType,
 } from "docx";
 
 // ── Konstanten ────────────────────────────────────────────────
@@ -92,26 +92,39 @@ function uebungMarkdown(meta, imgName, headingLevel = 1) {
   return (headingLevel === 1 ? front : []).concat(body).join("\n");
 }
 
-// Eine Übung als Word-Tabelle (wiederverwendbar für späteren Trainings-Export)
+// Word-Tabelle für eine Übung. Spaltenraster MUSS explizit sein (columnWidths +
+// FIXED-Layout): ohne das kollabiert die Label-Spalte in Pages/iOS zu einem
+// buchstabenweisen Umbruch. Masse in DXA (1/20 pt); Satzspiegel = 9360 DXA.
+const DXA_LABEL = 2160, DXA_VALUE = 7200, DXA_TOTAL = DXA_LABEL + DXA_VALUE;
+const IMG_W = 600, IMG_H = 400; // px @96dpi = 6.25 x 4.17 Zoll, passt in den Satzspiegel
+
 function uebungTable(meta, pngBytes) {
   const cell = (children, opts = {}) => new TableCell({ ...opts, children });
+  const full = { columnSpan: 2, width: { size: DXA_TOTAL, type: WidthType.DXA } };
   const rows = [
     new TableRow({
-      children: [cell([new Paragraph({ children: [new TextRun({ text: meta.titel || "Übung", bold: true, size: 32 })] })], { columnSpan: 2 })],
+      children: [cell([new Paragraph({ children: [new TextRun({ text: meta.titel || "Übung", bold: true, size: 32 })] })], full)],
     }),
     new TableRow({
-      children: [cell([new Paragraph({ children: [new ImageRun({ type: "png", data: pngBytes, transformation: { width: 620, height: 413 } })] })], { columnSpan: 2 })],
+      children: [cell([new Paragraph({ children: [new ImageRun({ type: "png", data: pngBytes, transformation: { width: IMG_W, height: IMG_H } })] })], full)],
     }),
     ...META_FIELDS
       .filter(([key]) => key !== "titel" && meta[key].trim())
       .map(([key, label]) => new TableRow({
         children: [
-          cell([new Paragraph({ children: [new TextRun({ text: label, bold: true })] })], { width: { size: 22, type: WidthType.PERCENTAGE } }),
-          cell(meta[key].split("\n").map(line => new Paragraph(line))),
+          cell([new Paragraph({ children: [new TextRun({ text: label, bold: true })] })],
+            { width: { size: DXA_LABEL, type: WidthType.DXA } }),
+          cell(meta[key].split("\n").map(line => new Paragraph(line)),
+            { width: { size: DXA_VALUE, type: WidthType.DXA } }),
         ],
       })),
   ];
-  return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows });
+  return new Table({
+    columnWidths: [DXA_LABEL, DXA_VALUE],
+    layout: TableLayoutType.FIXED,
+    width: { size: DXA_TOTAL, type: WidthType.DXA },
+    rows,
+  });
 }
 
 const COL = {
