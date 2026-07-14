@@ -800,6 +800,18 @@ export default function Uebungsplaner() {
     color: UI.text, fontFamily: "ui-monospace, monospace", fontSize: 12,
     outline: "none", resize: "vertical",
   };
+  // Werkzeug-Raster: zwei Spalten, kompakte Zellen statt langer Button-Liste
+  const grid2 = {
+    display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginBottom: 2,
+  };
+  const cell = (active) => ({
+    padding: "6px 4px", borderRadius: 6, cursor: "pointer", textAlign: "center",
+    border: active ? `1px solid ${UI.accent}` : `1px solid ${UI.border}`,
+    background: active ? UI.accentSoft : UI.panel,
+    color: active ? UI.accent : UI.text,
+    fontFamily: "ui-monospace, SFMono-Regular, monospace", fontSize: 11.5,
+    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+  });
   // Kompakte Aktion (Leiste über dem Feld, Export-Zeile)
   const smallBtn = {
     padding: "5px 10px", borderRadius: 6, cursor: "pointer",
@@ -829,36 +841,42 @@ export default function Uebungsplaner() {
 
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* Werkzeugleiste */}
-        <div style={{ width: 168, padding: "8px 12px", overflowY: "auto", background: UI.panel, borderRight: `1px solid ${UI.border}`, flexShrink: 0 }}>
-          <div style={groupLabel}>Modus</div>
-          <button style={btn(mode === "select")} onClick={() => setMode("select")}>Auswählen / Verschieben</button>
+        <div style={{ width: 186, padding: "8px 12px", overflowY: "auto", background: UI.panel, borderRight: `1px solid ${UI.border}`, flexShrink: 0 }}>
+          <button style={{ ...btn(mode === "select"), textAlign: "center", marginBottom: 0 }}
+            onClick={() => setMode("select")}>Auswählen</button>
 
-          <div style={groupLabel}>Elemente</div>
-          <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
-            <button style={{ ...btn(mode === "el:player"), flex: 1, minWidth: 0, marginBottom: 0 }} onClick={() => setMode("el:player")}>Spieler</button>
+          <div style={{ ...groupLabel, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>Elemente</span>
             <ColorPicker color={playerColor} title="Spielerfarbe wählen"
               onPick={(c) => { setPlayerColor(c); setMode("el:player"); }} />
           </div>
-          {EL_DEFS.map(d => (
-            <button key={d.key} style={btn(mode === "el:" + d.key)} onClick={() => setMode("el:" + d.key)}>{d.label}</button>
-          ))}
-
-          <button style={btn(mode === "el:text")} onClick={() => setMode("el:text")}>Text</button>
+          <div style={grid2}>
+            <button style={{ ...cell(mode === "el:player"), gridColumn: "1 / -1" }}
+              onClick={() => setMode("el:player")}>Spieler</button>
+            {EL_DEFS.map(d => (
+              <button key={d.key} style={cell(mode === "el:" + d.key)} onClick={() => setMode("el:" + d.key)}>{d.label}</button>
+            ))}
+            <button style={{ ...cell(mode === "el:text"), gridColumn: "1 / -1" }}
+              onClick={() => setMode("el:text")}>Text</button>
+          </div>
 
           <div style={{ ...groupLabel, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span>Wege & Formen</span>
             <ColorPicker color={lineColor} title="Linienfarbe wählen"
               onPick={setLineColor} />
           </div>
-          {LINE_DEFS.map(d => (
-            <button key={d.key} style={btn(mode === "line:" + d.key)} onClick={() => setMode("line:" + d.key)} title={d.hint}>{d.label}</button>
-          ))}
+          <div style={grid2}>
+            {LINE_DEFS.map(d => (
+              <button key={d.key} style={cell(mode === "line:" + d.key)} onClick={() => setMode("line:" + d.key)} title={d.hint}>{d.label}</button>
+            ))}
+          </div>
 
           <div style={groupLabel}>Feld</div>
-          {[["half", "Halbfeld"], ["full", "Ganzes Feld"], ["penalty", "Strafraum"], ["blank", "Freie Fläche"]].map(([k, l]) => (
-            <button key={k} style={btn(field === k)} onClick={() => setField(k)}>{l}</button>
-          ))}
-
+          <div style={grid2}>
+            {[["half", "Halbfeld"], ["full", "Ganzes"], ["penalty", "Strafraum"], ["blank", "Frei"]].map(([k, l]) => (
+              <button key={k} style={cell(field === k)} onClick={() => setField(k)}>{l}</button>
+            ))}
+          </div>
         </div>
 
         {/* Zeichenfläche */}
