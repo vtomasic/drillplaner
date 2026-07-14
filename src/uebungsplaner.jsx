@@ -9,6 +9,15 @@ import {
 const VW = 900, VH = 600, M = 25; // viewBox + Rand
 const FW = VW - 2 * M, FH = VH - 2 * M;
 
+// Logo: Datei nach public/logo.png legen (oder .svg → Pfad hier anpassen).
+// Fehlt sie, wird das Bild ausgeblendet statt als kaputtes Icon gezeigt.
+const LOGO_URL = import.meta.env.BASE_URL + "logo.png";
+// Spendenlink (Stripe); leer = Knopf wird nicht angezeigt
+const COFFEE_URL = "https://donate.stripe.com/7sY28t3RggYJ5MAdii5ZC00";
+// Betreiber-Kontakt (Stripe verlangt sichtbare Angaben für die TWINT-Freigabe)
+const CONTACT_NAME = "Valentino Tomasic";
+const CONTACT_MAIL = "valentino.tomasic@bluewin.ch";
+
 // UI-Palette (helles Theme, Akzent = Bad-Ragaz-Blau)
 const UI = {
   accent: "#0a3d91",       // Vereinsblau — hier zentral anpassbar
@@ -844,6 +853,8 @@ export default function Uebungsplaner() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: UI.bg, color: UI.text, fontFamily: "system-ui, sans-serif" }}>
       {/* Kopfzeile */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: UI.panel, borderBottom: `1px solid ${UI.border}` }}>
+        <img src={LOGO_URL} alt="" style={{ height: 30, width: "auto" }}
+          onError={e => { e.currentTarget.style.display = "none"; }} />
         <div style={{ fontFamily: "ui-monospace, monospace", fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>
           ÜBUNGSPLANER<span style={{ color: UI.accent }}>_</span>
         </div>
@@ -1078,8 +1089,29 @@ export default function Uebungsplaner() {
       </div>
 
       {/* Fusszeile */}
-      <div style={{ padding: "6px 16px", fontSize: 11.5, color: msg.startsWith("Laden fehl") ? UI.danger : UI.muted, background: UI.panel, borderTop: `1px solid ${UI.border}`, fontFamily: "ui-monospace, monospace" }}>
-        {msg || "Element wählen → aufs Feld tippen · Weg wählen → ziehen · Auswählen-Modus: Elemente & Wege verschieben, Entf löscht"}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 16px", fontSize: 11.5, background: UI.panel, borderTop: `1px solid ${UI.border}`, fontFamily: "ui-monospace, monospace" }}>
+        <span style={{
+          color: msg.startsWith("Laden fehl") ? UI.danger : UI.muted,
+          minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
+          {msg || "Element wählen → aufs Feld tippen · Weg wählen → ziehen · Auswählen-Modus: Elemente & Wege verschieben, Entf löscht"}
+        </span>
+        <div style={{ flex: 1 }} />
+        <span style={{ color: UI.muted, whiteSpace: "nowrap", flexShrink: 0 }}>
+          {CONTACT_NAME} ·{" "}
+          <a href={`mailto:${CONTACT_MAIL}`} style={{ color: UI.muted }}>{CONTACT_MAIL}</a>
+        </span>
+        {COFFEE_URL && (
+          <a href={COFFEE_URL} target="_blank" rel="noopener noreferrer"
+            title="Freiwillige Unterstützung für den Entwickler — der Erlös wandert in die Mannschaftskasse des FC Bad Ragaz"
+            style={{
+              ...smallBtn, display: "inline-block", textDecoration: "none",
+              color: UI.accent, border: `1px solid ${UI.accent}`, background: UI.accentSoft,
+              whiteSpace: "nowrap", flexShrink: 0,
+            }}>
+            ☕ Kaffee spendieren
+          </a>
+        )}
       </div>
     </div>
   );
