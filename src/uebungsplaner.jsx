@@ -289,10 +289,20 @@ function Element({ el, selected, onDown, onEdit }) {
         </g>
       );
     case "ball":
+      // Klassischer Fussball: Umriss, Zentral-Fünfeck, 5 Nähte zu den Rand-Panels
       return (
         <g {...common}>{sel}
-          <circle r={6} fill="#fff" stroke="#222" strokeWidth={1.5} />
-          <path d="M-2.5,-1 L2.5,-1 L1.5,2 L-1.5,2 Z" fill="#222" />
+          <circle r={7} fill="#fff" stroke="#1b2330" strokeWidth={1.2} />
+          {[0, 72, 144, 216, 288].map(a => {
+            const rad = ((a - 90) * Math.PI) / 180;
+            return (
+              <line key={a}
+                x1={(Math.cos(rad) * 2.8).toFixed(2)} y1={(Math.sin(rad) * 2.8).toFixed(2)}
+                x2={(Math.cos(rad) * 6.6).toFixed(2)} y2={(Math.sin(rad) * 6.6).toFixed(2)}
+                stroke="#1b2330" strokeWidth={1.1} />
+            );
+          })}
+          <path d="M0,-2.8 L2.66,-0.87 L1.65,2.27 L-1.65,2.27 L-2.66,-0.87 Z" fill="#1b2330" />
         </g>
       );
     case "cone":

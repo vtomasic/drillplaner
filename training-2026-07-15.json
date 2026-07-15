@@ -1,0 +1,980 @@
+{
+  "version": 1,
+  "type": "training",
+  "titel": "TR 15.07.2026 · Passspiel & Spielaufbau",
+  "uebungen": [
+    {
+      "meta": {
+        "titel": "Warm-up ohne Ball",
+        "ziel": "Aktivierung, Lauf-ABC",
+        "dauer": "5'",
+        "beschreibung": "Laufwege zwischen den Hütchenreihen: Traben, Anfersen, Kniehub, Seitschritte, Rückwärts.\nJede Bahn eine andere Aufgabe, zurück locker traben.",
+        "variation": "Auf Signal Tempowechsel / kurze Antritte auf den letzten Metern",
+        "mannschaften": "Kader: 18 Feldspieler + 2 TH, alle gemeinsam",
+        "material": "8 Hütchen"
+      },
+      "field": "blank",
+      "items": [
+        {
+          "kind": "el",
+          "id": 1,
+          "type": "cone",
+          "x": 250,
+          "y": 120,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 2,
+          "type": "cone",
+          "x": 250,
+          "y": 240,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 3,
+          "type": "cone",
+          "x": 250,
+          "y": 360,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 4,
+          "type": "cone",
+          "x": 250,
+          "y": 480,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 5,
+          "type": "cone",
+          "x": 650,
+          "y": 120,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 6,
+          "type": "cone",
+          "x": 650,
+          "y": 240,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 7,
+          "type": "cone",
+          "x": 650,
+          "y": 360,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 8,
+          "type": "cone",
+          "x": 650,
+          "y": 480,
+          "label": ""
+        },
+        {
+          "kind": "line",
+          "id": 9,
+          "lineType": "run",
+          "color": "#f5f2e8",
+          "x1": 270,
+          "y1": 120,
+          "x2": 630,
+          "y2": 120
+        },
+        {
+          "kind": "line",
+          "id": 10,
+          "lineType": "run",
+          "color": "#f5f2e8",
+          "x1": 270,
+          "y1": 240,
+          "x2": 630,
+          "y2": 240
+        },
+        {
+          "kind": "line",
+          "id": 11,
+          "lineType": "run",
+          "color": "#f5f2e8",
+          "x1": 270,
+          "y1": 360,
+          "x2": 630,
+          "y2": 360
+        },
+        {
+          "kind": "line",
+          "id": 12,
+          "lineType": "run",
+          "color": "#f5f2e8",
+          "x1": 270,
+          "y1": 480,
+          "x2": 630,
+          "y2": 480
+        },
+        {
+          "kind": "el",
+          "id": 13,
+          "type": "player",
+          "x": 200,
+          "y": 150,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 14,
+          "type": "player",
+          "x": 200,
+          "y": 270,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 15,
+          "type": "player",
+          "x": 200,
+          "y": 390,
+          "label": "",
+          "color": "#2f6fde"
+        }
+      ]
+    },
+    {
+      "meta": {
+        "titel": "Passform im 2er-Team",
+        "ziel": "Passqualität, erster Kontakt",
+        "dauer": "5'",
+        "beschreibung": "Paare im Abstand ~10 m. Flache, scharfe Pässe.\nSteigerung: 1 Kontakt, schwacher Fuss, An- und Mitnahme in die Bewegung.",
+        "variation": "Abstand vergrössern / Pass in den Lauf statt auf den Mann",
+        "mannschaften": "2er-Teams",
+        "material": "1 Ball pro Paar"
+      },
+      "field": "blank",
+      "items": [
+        {
+          "kind": "el",
+          "id": 1,
+          "type": "player",
+          "x": 300,
+          "y": 150,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 2,
+          "type": "player",
+          "x": 600,
+          "y": 150,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 3,
+          "type": "player",
+          "x": 300,
+          "y": 300,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 4,
+          "type": "player",
+          "x": 600,
+          "y": 300,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 5,
+          "type": "player",
+          "x": 300,
+          "y": 450,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 6,
+          "type": "player",
+          "x": 600,
+          "y": 450,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 7,
+          "type": "ball",
+          "x": 330,
+          "y": 150,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 8,
+          "type": "ball",
+          "x": 330,
+          "y": 300,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 9,
+          "type": "ball",
+          "x": 330,
+          "y": 450,
+          "label": ""
+        },
+        {
+          "kind": "line",
+          "id": 10,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 345,
+          "y1": 140,
+          "x2": 575,
+          "y2": 140
+        },
+        {
+          "kind": "line",
+          "id": 11,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 575,
+          "y1": 162,
+          "x2": 345,
+          "y2": 162
+        },
+        {
+          "kind": "line",
+          "id": 12,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 345,
+          "y1": 290,
+          "x2": 575,
+          "y2": 290
+        },
+        {
+          "kind": "line",
+          "id": 13,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 575,
+          "y1": 312,
+          "x2": 345,
+          "y2": 312
+        },
+        {
+          "kind": "line",
+          "id": 14,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 345,
+          "y1": 440,
+          "x2": 575,
+          "y2": 440
+        },
+        {
+          "kind": "line",
+          "id": 15,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 575,
+          "y1": 462,
+          "x2": 345,
+          "y2": 462
+        }
+      ]
+    },
+    {
+      "meta": {
+        "titel": "Passform Spielaufbau",
+        "ziel": "TE Passspiel, TA Spielaufbau: Aufbau von hinten, Anspiel in die Tiefe, Abschluss ins Minitor",
+        "dauer": "20' (4 x 4')",
+        "beschreibung": "Zwei gespiegelte Stationen (9/9).\nStart am Ball an der Grundlinie: Pass auf den entgegenkommenden Sechser, Ablage auf den Aussen, Diagonalball in die Tiefe, Abschluss flach ins Minitor an der Mittellinie.\nNach jedem Pass dem Ball nachrücken, Positionen rotieren.",
+        "variation": "+1 Verteidiger zentral zwischen den Stationen (roter Spieler) → Sechser muss sich lösen, Passfenster suchen",
+        "mannschaften": "2 Gruppen à 9, je Station",
+        "material": "2 Minitore, Hütchen, Bälle an der Grundlinie"
+      },
+      "field": "penalty",
+      "items": [
+        {
+          "kind": "el",
+          "id": 1,
+          "type": "ball",
+          "x": 285,
+          "y": 556,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 2,
+          "type": "player",
+          "x": 258,
+          "y": 545,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 3,
+          "type": "cone",
+          "x": 320,
+          "y": 552,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 4,
+          "type": "player",
+          "x": 350,
+          "y": 405,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 5,
+          "type": "cone",
+          "x": 380,
+          "y": 410,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 6,
+          "type": "player",
+          "x": 165,
+          "y": 330,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 7,
+          "type": "cone",
+          "x": 138,
+          "y": 336,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 8,
+          "type": "player",
+          "x": 330,
+          "y": 190,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 9,
+          "type": "goal",
+          "x": 340,
+          "y": 72,
+          "label": ""
+        },
+        {
+          "kind": "line",
+          "id": 10,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 262,
+          "y1": 532,
+          "x2": 345,
+          "y2": 420
+        },
+        {
+          "kind": "line",
+          "id": 11,
+          "lineType": "run",
+          "color": "#f5f2e8",
+          "x1": 280,
+          "y1": 548,
+          "x2": 360,
+          "y2": 440
+        },
+        {
+          "kind": "line",
+          "id": 12,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 342,
+          "y1": 392,
+          "x2": 185,
+          "y2": 342
+        },
+        {
+          "kind": "line",
+          "id": 13,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 178,
+          "y1": 315,
+          "x2": 315,
+          "y2": 200
+        },
+        {
+          "kind": "line",
+          "id": 14,
+          "lineType": "shot",
+          "color": "#ff5b4d",
+          "x1": 332,
+          "y1": 176,
+          "x2": 338,
+          "y2": 95
+        },
+        {
+          "kind": "el",
+          "id": 15,
+          "type": "ball",
+          "x": 615,
+          "y": 556,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 16,
+          "type": "player",
+          "x": 642,
+          "y": 545,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 17,
+          "type": "cone",
+          "x": 580,
+          "y": 552,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 18,
+          "type": "player",
+          "x": 550,
+          "y": 405,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 19,
+          "type": "cone",
+          "x": 520,
+          "y": 410,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 20,
+          "type": "player",
+          "x": 735,
+          "y": 330,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 21,
+          "type": "cone",
+          "x": 762,
+          "y": 336,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 22,
+          "type": "player",
+          "x": 570,
+          "y": 190,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 23,
+          "type": "goal",
+          "x": 560,
+          "y": 72,
+          "label": ""
+        },
+        {
+          "kind": "line",
+          "id": 24,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 638,
+          "y1": 532,
+          "x2": 555,
+          "y2": 420
+        },
+        {
+          "kind": "line",
+          "id": 25,
+          "lineType": "run",
+          "color": "#f5f2e8",
+          "x1": 620,
+          "y1": 548,
+          "x2": 540,
+          "y2": 440
+        },
+        {
+          "kind": "line",
+          "id": 26,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 558,
+          "y1": 392,
+          "x2": 715,
+          "y2": 342
+        },
+        {
+          "kind": "line",
+          "id": 27,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 722,
+          "y1": 315,
+          "x2": 585,
+          "y2": 200
+        },
+        {
+          "kind": "line",
+          "id": 28,
+          "lineType": "shot",
+          "color": "#ff5b4d",
+          "x1": 568,
+          "y1": 176,
+          "x2": 562,
+          "y2": 95
+        },
+        {
+          "kind": "el",
+          "id": 29,
+          "type": "player",
+          "x": 450,
+          "y": 290,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 30,
+          "type": "text",
+          "x": 415,
+          "y": 335,
+          "label": "Variation",
+          "color": "#d64545"
+        }
+      ]
+    },
+    {
+      "meta": {
+        "titel": "Spielform: Spielaufbau vs. Pressing",
+        "ziel": "Aufbau unter Druck lösen, Pressing überspielen",
+        "dauer": "25'",
+        "beschreibung": "4 + TH gegen 5 im Raum vor dem Tor.\nAufbauteam (blau) spielt vom TH heraus und punktet, wenn es kontrolliert eines der Minitore an der Mittellinie trifft oder über die Mittellinie dribbelt.\nPressingteam (rot) punktet bei Ballgewinn mit schnellem Abschluss aufs grosse Tor.",
+        "variation": "Pressingteam +1 / Aufbauteam nur 2 Kontakte",
+        "mannschaften": "4 + TH (blau) gegen 5 (rot), Gruppen rotieren",
+        "material": "2 Minitore, Überzieher, Bälle beim TH"
+      },
+      "field": "penalty",
+      "items": [
+        {
+          "kind": "el",
+          "id": 1,
+          "type": "gk",
+          "x": 450,
+          "y": 545,
+          "label": "T"
+        },
+        {
+          "kind": "el",
+          "id": 2,
+          "type": "player",
+          "x": 200,
+          "y": 470,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 3,
+          "type": "player",
+          "x": 360,
+          "y": 495,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 4,
+          "type": "player",
+          "x": 540,
+          "y": 495,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 5,
+          "type": "player",
+          "x": 700,
+          "y": 470,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 6,
+          "type": "player",
+          "x": 280,
+          "y": 350,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 7,
+          "type": "player",
+          "x": 420,
+          "y": 320,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 8,
+          "type": "player",
+          "x": 560,
+          "y": 340,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 9,
+          "type": "player",
+          "x": 640,
+          "y": 250,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 10,
+          "type": "player",
+          "x": 330,
+          "y": 220,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 11,
+          "type": "goal",
+          "x": 280,
+          "y": 72,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 12,
+          "type": "goal",
+          "x": 620,
+          "y": 72,
+          "label": ""
+        },
+        {
+          "kind": "line",
+          "id": 13,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 442,
+          "y1": 532,
+          "x2": 225,
+          "y2": 480
+        },
+        {
+          "kind": "line",
+          "id": 14,
+          "lineType": "pass",
+          "color": "#ffd447",
+          "x1": 210,
+          "y1": 452,
+          "x2": 345,
+          "y2": 485
+        },
+        {
+          "kind": "el",
+          "id": 15,
+          "type": "ball",
+          "x": 465,
+          "y": 552,
+          "label": ""
+        }
+      ]
+    },
+    {
+      "meta": {
+        "titel": "Spielform 9:9",
+        "ziel": "Spielaufbau im Wettkampf anwenden",
+        "dauer": "30'",
+        "beschreibung": "9 gegen 9 auf den markierten Raum (Trapez).\nBlau greift die vier Minitore an den Rändern an (breit spielen!), Rot verteidigt sie und kontert aufs grosse Tor mit TH.\nSeitenwechsel nach der Hälfte.",
+        "variation": "Tor zählt nur nach Spielverlagerung / Minitor-Treffer nach Durchbruch über aussen zählt doppelt",
+        "mannschaften": "9 (blau) gegen 9 (rot inkl. TH)",
+        "material": "4 Minitore, Überzieher, Hütchen für die Markierung"
+      },
+      "field": "penalty",
+      "items": [
+        {
+          "kind": "line",
+          "id": 1,
+          "lineType": "plain",
+          "color": "#f5f2e8",
+          "x1": 140,
+          "y1": 500,
+          "x2": 230,
+          "y2": 170
+        },
+        {
+          "kind": "line",
+          "id": 2,
+          "lineType": "plain",
+          "color": "#f5f2e8",
+          "x1": 230,
+          "y1": 170,
+          "x2": 670,
+          "y2": 170
+        },
+        {
+          "kind": "line",
+          "id": 3,
+          "lineType": "plain",
+          "color": "#f5f2e8",
+          "x1": 670,
+          "y1": 170,
+          "x2": 760,
+          "y2": 500
+        },
+        {
+          "kind": "el",
+          "id": 4,
+          "type": "goal",
+          "x": 340,
+          "y": 165,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 5,
+          "type": "goal",
+          "x": 560,
+          "y": 165,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 6,
+          "type": "goal",
+          "x": 185,
+          "y": 320,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 7,
+          "type": "goal",
+          "x": 715,
+          "y": 320,
+          "label": ""
+        },
+        {
+          "kind": "el",
+          "id": 8,
+          "type": "gk",
+          "x": 450,
+          "y": 545,
+          "label": "T"
+        },
+        {
+          "kind": "el",
+          "id": 9,
+          "type": "player",
+          "x": 300,
+          "y": 490,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 10,
+          "type": "player",
+          "x": 600,
+          "y": 490,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 11,
+          "type": "player",
+          "x": 230,
+          "y": 380,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 12,
+          "type": "player",
+          "x": 670,
+          "y": 380,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 13,
+          "type": "player",
+          "x": 340,
+          "y": 220,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 14,
+          "type": "player",
+          "x": 560,
+          "y": 220,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 15,
+          "type": "player",
+          "x": 450,
+          "y": 300,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 16,
+          "type": "player",
+          "x": 450,
+          "y": 140,
+          "label": "",
+          "color": "#d64545"
+        },
+        {
+          "kind": "el",
+          "id": 17,
+          "type": "player",
+          "x": 350,
+          "y": 440,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 18,
+          "type": "player",
+          "x": 550,
+          "y": 440,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 19,
+          "type": "player",
+          "x": 450,
+          "y": 470,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 20,
+          "type": "player",
+          "x": 280,
+          "y": 340,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 21,
+          "type": "player",
+          "x": 620,
+          "y": 340,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 22,
+          "type": "player",
+          "x": 450,
+          "y": 380,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 23,
+          "type": "player",
+          "x": 380,
+          "y": 250,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 24,
+          "type": "player",
+          "x": 520,
+          "y": 250,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 25,
+          "type": "player",
+          "x": 450,
+          "y": 200,
+          "label": "",
+          "color": "#2f6fde"
+        },
+        {
+          "kind": "el",
+          "id": 26,
+          "type": "ball",
+          "x": 470,
+          "y": 385,
+          "label": ""
+        }
+      ]
+    }
+  ]
+}
