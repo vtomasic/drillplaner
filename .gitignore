@@ -1,3 +1,14 @@
 node_modules/
 dist/
 *.local
+
+# Übungs-/Trainingsdaten und Exporte im Projektordner: lokal halten,
+# nicht ins öffentliche Repo (nur Wurzelebene; public/ etc. bleibt unberührt)
+/*.json
+!/package.json
+!/package-lock.json
+/*.png
+/*.docx
+/*.md
+!/README.md
+!/uebungsplaner-handover.md
