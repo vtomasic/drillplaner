@@ -128,7 +128,11 @@ Dateiname beim Export = Slug aus dem Titel (Umlaute → ae/oe/ue), Fallback `ueb
 - Nach dem Laden: `nextId = max(ids) + 1` (Modul-Level-Counter!)
 - **PNG-Export** (2×-Auflösung via Canvas) enthält KEINE Metadaten — nur SVG ist die Projektdatei
 - **Markdown-Export** (`exportMD` / `exportTrainingMD`, `uebungMarkdown()`): Notiz für
-  Obsidian + PNG(s) als getrennte Downloads. Einzelübung: YAML-Frontmatter
+  Obsidian + PNG(s). Speichern via `showDirectoryPicker` direkt in einen gewählten
+  Ordner (`pickDirectory()`/`saveFiles()`); Safari/iPad ohne die API → Fallback auf
+  Einzeldownloads; Dialog abgebrochen → Export abgebrochen (kein Fallback).
+  Übungen mit LEERER Zeichenfläche (items.length === 0) bekommen kein PNG und keine
+  `![[…]]`-Zeile — gilt genauso im Word-Export (uebungTable ohne Bildzeile). Einzelübung: YAML-Frontmatter
   (titel, dauer, ziel, mannschaften, material → Dataview-fähig), Bild via `![[name.png]]`,
   beschreibung/variation als Abschnitte. Training: eine Notiz, Frontmatter nur auf
   Trainings-Ebene, pro Übung `##`-Abschnitt mit Kopfdaten als Liste (dort gibt es kein
@@ -162,15 +166,23 @@ Dateiname beim Export = Slug aus dem Titel (Umlaute → ae/oe/ue), Fallback `ueb
 ### Training (mehrere Übungen bündeln)
 - State: `training: Array<{meta, field, items}>` (Snapshots via `structuredClone`),
   `trainingTitel`, `activeIdx` (welcher Eintrag im Editor liegt)
-- UI im rechten Panel unter den Übungsdaten: „+ Übung hinzufügen" nimmt den aktuellen
-  Editor-Stand; Klick auf Eintrag lädt ihn zurück in den Editor (markiert aktiv);
-  „Übung N aktualisieren" überschreibt den aktiven Eintrag; ↑/✕ für Reihenfolge/Entfernen
+- „+ Zum Training hinzufügen" nimmt den aktuellen Editor-Stand; Klick auf Eintrag
+  lädt ihn in den Editor und markiert ihn aktiv; ↑/✕ für Reihenfolge/Entfernen
+- Aktiver Eintrag ist LIVE gebunden: useEffect über [items, meta, field] schreibt
+  jede Editor-Änderung sofort in training[activeIdx] (kein Aktualisieren-Knopf).
+  Loslösen: „Neue Übung" (leert Editor, activeIdx=null) oder Laden einer
+  Übungs-Datei (setzt activeIdx=null, ersetzt also NICHT den aktiven Eintrag).
+  ACHTUNG bei Änderungen: nie Items im State mutieren, immer neue Objekte —
+  die Live-Bindung speichert Referenzen aus dem Editor-State ins Training
 - **Speichern/Laden:** eigene JSON-Datei
   `{version:1, type:"training", titel, uebungen:[{meta, field, items}]}` —
   der normale „Übung laden"-Button erkennt Trainings-Dateien ebenfalls (Weiche auf
   `Array.isArray(data.uebungen)`)
-- **Training → Word:** ein Dokument, Trainings-Titel als Überschrift, pro Übung
-  `uebungTable()` mit Seitenumbruch dazwischen. Übungen werden offscreen gerendert:
+- **Training → Word:** ein Dokument, Trainings-Titel als Überschrift, danach
+  `uebersichtTable()` (Ablauf: Nr. | Übung | Dauer | Ziel, FIXED-Raster 9360 DXA)
+  auf Seite 1, dann pro Übung Seitenumbruch + `uebungTable()` mit Nummern-Präfix
+  im Titel. Markdown-Training analog: „## Ablauf"-Tabelle + nummerierte
+  `## N. Titel`-Überschriften (prefix-Parameter von uebungMarkdown/uebungTable). Übungen werden offscreen gerendert:
   `uebungSvgString(field, items)` via `renderToStaticMarkup` (react-dom/server) →
   `svgToPng()` — kein Umweg über den Editor-State
 

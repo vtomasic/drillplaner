@@ -69,8 +69,26 @@ const yaml = (s) => JSON.stringify(s ?? "");        // sicheres Quoting inkl. Um
 const MD_FRONT = ["dauer", "ziel", "mannschaften", "material"]; // einzeilig → Frontmatter
 const MD_BODY = ["beschreibung", "variation"];                  // mehrzeilig → Abschnitte
 
-// Frontmatter + Bild-Embed + Abschnitte; imgName = Dateiname des PNG im Vault
-function uebungMarkdown(meta, imgName, headingLevel = 1) {
+// Ordner-Auswahl (nur Chromium; Safari/iPad → "unsupported" → Download-Fallback)
+async function pickDirectory() {
+  if (!window.showDirectoryPicker) return "unsupported";
+  try {
+    return await window.showDirectoryPicker({ mode: "readwrite" });
+  } catch (e) {
+    return e?.name === "AbortError" ? "cancelled" : "unsupported";
+  }
+}
+
+async function writeToDir(dir, name, blob) {
+  const fh = await dir.getFileHandle(name, { create: true });
+  const w = await fh.createWritable();
+  await w.write(blob);
+  await w.close();
+}
+
+// Frontmatter + Bild-Embed + Abschnitte; imgName = Dateiname des PNG im Vault,
+// null = Übung ohne Zeichnung → kein Bild-Verweis; prefix = Nummerierung ("1. ")
+function uebungMarkdown(meta, imgName, headingLevel = 1, prefix = "") {
   const h = "#".repeat(headingLevel);
   const front = [
     "---",
@@ -86,11 +104,10 @@ function uebungMarkdown(meta, imgName, headingLevel = 1) {
     "",
   ];
   const body = [
-    `${h} ${meta.titel || "Übung"}`,
+    `${h} ${prefix}${meta.titel || "Übung"}`,
     "",
     ...kopfdaten,
-    `![[${imgName}]]`,
-    "",
+    ...(imgName ? [`![[${imgName}]]`, ""] : []),
     ...MD_BODY.filter(k => meta[k].trim()).flatMap(k => [
       `${h}# ${k[0].toUpperCase() + k.slice(1)}`,
       "",
@@ -107,16 +124,16 @@ function uebungMarkdown(meta, imgName, headingLevel = 1) {
 const DXA_LABEL = 2160, DXA_VALUE = 7200, DXA_TOTAL = DXA_LABEL + DXA_VALUE;
 const IMG_W = 600, IMG_H = 400; // px @96dpi = 6.25 x 4.17 Zoll, passt in den Satzspiegel
 
-function uebungTable(meta, pngBytes) {
+function uebungTable(meta, pngBytes, prefix = "") {
   const cell = (children, opts = {}) => new TableCell({ ...opts, children });
   const full = { columnSpan: 2, width: { size: DXA_TOTAL, type: WidthType.DXA } };
   const rows = [
     new TableRow({
-      children: [cell([new Paragraph({ children: [new TextRun({ text: meta.titel || "Übung", bold: true, size: 32 })] })], full)],
+      children: [cell([new Paragraph({ children: [new TextRun({ text: prefix + (meta.titel || "Übung"), bold: true, size: 32 })] })], full)],
     }),
-    new TableRow({
+    ...(pngBytes ? [new TableRow({
       children: [cell([new Paragraph({ children: [new ImageRun({ type: "png", data: pngBytes, transformation: { width: IMG_W, height: IMG_H } })] })], full)],
-    }),
+    })] : []),
     ...META_FIELDS
       .filter(([key]) => key !== "titel" && meta[key].trim())
       .map(([key, label]) => new TableRow({
@@ -132,6 +149,34 @@ function uebungTable(meta, pngBytes) {
     columnWidths: [DXA_LABEL, DXA_VALUE],
     layout: TableLayoutType.FIXED,
     width: { size: DXA_TOTAL, type: WidthType.DXA },
+    rows,
+  });
+}
+
+// Übersichtstabelle am Anfang des Trainings-Dokuments: Nr. | Übung | Dauer | Ziel
+function uebersichtTable(uebungen) {
+  const W = [720, 3240, 1440, 3960]; // Summe = 9360 DXA (Satzspiegel)
+  const zelle = (text, w, bold = false) => new TableCell({
+    width: { size: w, type: WidthType.DXA },
+    children: [new Paragraph({ children: [new TextRun({ text, bold })] })],
+  });
+  const rows = [
+    new TableRow({
+      children: [zelle("Nr.", W[0], true), zelle("Übung", W[1], true), zelle("Dauer", W[2], true), zelle("Ziel", W[3], true)],
+    }),
+    ...uebungen.map((u, i) => new TableRow({
+      children: [
+        zelle(String(i + 1), W[0]),
+        zelle(u.meta.titel || "Übung", W[1]),
+        zelle(u.meta.dauer || "", W[2]),
+        zelle(u.meta.ziel || "", W[3]),
+      ],
+    })),
+  ];
+  return new Table({
+    columnWidths: W,
+    layout: TableLayoutType.FIXED,
+    width: { size: 9360, type: WidthType.DXA },
     rows,
   });
 }
@@ -651,9 +696,20 @@ export default function Uebungsplaner() {
     setMsg(`Übung ${training.length + 1} zum Training hinzugefügt`);
   };
 
-  const updateActive = () => {
-    setTraining(t => t.map((u, i) => i === activeIdx ? snapshot() : u));
-    setMsg(`Übung ${activeIdx + 1} im Training aktualisiert`);
+  // Aktiver Trainings-Eintrag ist LIVE gebunden: jede Änderung im Editor
+  // (Zeichnung, Übungsdaten, Feld) schreibt direkt in training[activeIdx]
+  useEffect(() => {
+    if (activeIdx == null) return;
+    setTraining(t => t.map((u, i) => i === activeIdx ? { meta, field, items } : u));
+  }, [items, meta, field, activeIdx]);
+
+  // Editor leeren und vom Trainings-Eintrag lösen (für eine frische Übung)
+  const newUebung = () => {
+    setActiveIdx(null);
+    setItems([]);
+    setMeta(EMPTY_META);
+    setSelectedId(null);
+    setMsg("Neue leere Übung");
   };
 
   const loadEntry = (i) => {
@@ -711,15 +767,20 @@ export default function Uebungsplaner() {
 
   const exportTrainingDOCX = async () => {
     try {
-      const children = [new Paragraph({
-        children: [new TextRun({ text: trainingTitel || "Training", bold: true, size: 40 })],
-        spacing: { after: 300 },
-      })];
+      const children = [
+        new Paragraph({
+          children: [new TextRun({ text: trainingTitel || "Training", bold: true, size: 40 })],
+          spacing: { after: 300 },
+        }),
+        uebersichtTable(training), // Ablauf-Übersicht auf Seite 1
+      ];
       for (let i = 0; i < training.length; i++) {
         const u = training[i];
-        const png = new Uint8Array(await (await svgToPng(uebungSvgString(u.field, u.items))).arrayBuffer());
-        if (i > 0) children.push(new Paragraph({ children: [new PageBreak()] }));
-        children.push(uebungTable(u.meta, png));
+        const png = u.items.length
+          ? new Uint8Array(await (await svgToPng(uebungSvgString(u.field, u.items))).arrayBuffer())
+          : null;
+        children.push(new Paragraph({ children: [new PageBreak()] }));
+        children.push(uebungTable(u.meta, png, `${i + 1}. `));
       }
       const doc = new Document({ sections: [{ children }] });
       download(await Packer.toBlob(doc), trainingFileBase() + ".docx");
@@ -729,13 +790,26 @@ export default function Uebungsplaner() {
     }
   };
 
+  // Dateien in den gewählten Ordner schreiben; ohne Ordner-API (iPad) als Downloads
+  const saveFiles = async (files) => {
+    const dir = await pickDirectory();
+    if (dir === "cancelled") return false;
+    if (dir === "unsupported") {
+      files.forEach(([name, blob]) => download(blob, name));
+    } else {
+      for (const [name, blob] of files) await writeToDir(dir, name, blob);
+    }
+    return true;
+  };
+
   const exportMD = async () => {
     try {
       const base = fileBase();
-      download(await renderPNGBlob(), base + ".png");
-      const md = uebungMarkdown(meta, base + ".png");
-      download(new Blob([md], { type: "text/markdown" }), base + ".md");
-      setMsg(`Markdown erstellt: ${base}.md + ${base}.png`);
+      const img = items.length ? base + ".png" : null; // leere Zeichnung → kein Bild
+      const files = [[base + ".md", new Blob([uebungMarkdown(meta, img)], { type: "text/markdown" })]];
+      if (img) files.push([img, await renderPNGBlob()]);
+      if (!(await saveFiles(files))) { setMsg("Export abgebrochen"); return; }
+      setMsg(`Markdown erstellt: ${files.map(f => f[0]).join(" + ")}`);
     } catch (err) {
       setMsg("Markdown-Export fehlgeschlagen: " + err.message);
     }
@@ -752,15 +826,24 @@ export default function Uebungsplaner() {
         "",
         `# ${trainingTitel || "Training"}`,
         "",
+        "## Ablauf",
+        "",
+        "| Nr. | Übung | Dauer | Ziel |",
+        "| --- | --- | --- | --- |",
+        ...training.map((u, i) =>
+          `| ${i + 1} | ${u.meta.titel || "Übung"} | ${u.meta.dauer || ""} | ${u.meta.ziel || ""} |`),
+        "",
       ];
+      const files = [];
       for (let i = 0; i < training.length; i++) {
         const u = training[i];
-        const img = `${base}-${i + 1}.png`;
-        download(await svgToPng(uebungSvgString(u.field, u.items)), img);
-        teile.push(uebungMarkdown(u.meta, img, 2));
+        const img = u.items.length ? `${base}-${i + 1}.png` : null;
+        if (img) files.push([img, await svgToPng(uebungSvgString(u.field, u.items))]);
+        teile.push(uebungMarkdown(u.meta, img, 2, `${i + 1}. `));
       }
-      download(new Blob([teile.join("\n")], { type: "text/markdown" }), base + ".md");
-      setMsg(`Markdown erstellt: ${base}.md + ${training.length} PNG`);
+      files.unshift([base + ".md", new Blob([teile.join("\n")], { type: "text/markdown" })]);
+      if (!(await saveFiles(files))) { setMsg("Export abgebrochen"); return; }
+      setMsg(`Markdown erstellt: ${base}.md + ${files.length - 1} PNG`);
     } catch (err) {
       setMsg("Markdown-Export fehlgeschlagen: " + err.message);
     }
@@ -768,7 +851,7 @@ export default function Uebungsplaner() {
 
   const exportDOCX = async () => {
     try {
-      const png = new Uint8Array(await (await renderPNGBlob()).arrayBuffer());
+      const png = items.length ? new Uint8Array(await (await renderPNGBlob()).arrayBuffer()) : null;
       const doc = new Document({ sections: [{ children: [uebungTable(meta, png)] }] });
       download(await Packer.toBlob(doc), fileBase() + ".docx");
       setMsg(`Word-Export erstellt: ${fileBase()}.docx`);
@@ -797,6 +880,7 @@ export default function Uebungsplaner() {
         return;
       }
       if (!Array.isArray(data.items)) throw new Error("ungültiges Format");
+      setActiveIdx(null); // geladene Datei ersetzt NICHT den aktiven Trainings-Eintrag
       setItems(data.items);
       setField(data.field || "half");
       setMeta({ ...EMPTY_META, ...(data.meta || {}) });
@@ -1036,7 +1120,14 @@ export default function Uebungsplaner() {
                   </div>
                 ))}
 
+                {activeIdx != null && (
+                  <div style={{ fontSize: 10.5, color: UI.accent, margin: "8px 0 0", lineHeight: 1.4, fontFamily: "ui-monospace, monospace" }}>
+                    Bearbeitet Übung {activeIdx + 1} des Trainings — Änderungen werden direkt übernommen
+                  </div>
+                )}
+
                 <div style={groupLabel}>Datei</div>
+                <button style={btn(false)} onClick={newUebung}>Neue Übung</button>
                 <button style={btn(false)} onClick={saveUebung}>Übung speichern</button>
                 <button style={btn(false)} onClick={() => fileRef.current.click()}>Übung laden</button>
                 <button style={btn(false)} onClick={addToTraining}>+ Zum Training hinzufügen</button>
@@ -1074,10 +1165,10 @@ export default function Uebungsplaner() {
                       onClick={() => removeEntry(i)} title="Aus Training entfernen">✕</button>
                   </div>
                 ))}
-                {activeIdx != null && activeIdx < training.length && (
-                  <button style={btn(false)} onClick={updateActive}>
-                    Übung {activeIdx + 1} aktualisieren
-                  </button>
+                {activeIdx != null && (
+                  <div style={{ fontSize: 10.5, color: UI.muted, margin: "4px 0 0", lineHeight: 1.4, fontFamily: "ui-monospace, monospace" }}>
+                    Markierte Übung liegt im Editor — Änderungen werden direkt übernommen
+                  </div>
                 )}
 
                 <div style={groupLabel}>Datei</div>
